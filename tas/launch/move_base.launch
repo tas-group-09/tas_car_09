@@ -67,6 +67,7 @@
 
   </node>
 
+
   <!-- Original Move Base-->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
     <rosparam file="$(find tas)/launch/config/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
