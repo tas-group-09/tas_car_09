@@ -7,6 +7,13 @@
   <!--(Static) transformation for relation between laser frame and base_link frame -->
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.28 0.0 0.18 0.0 0.0 0.0 /base_link /laser 40" />
   <node pkg="tf" type="static_transform_publisher" name="scanmatch_to_base" args="-0.28 0.0 -0.18 0.0 0.0 0.0 /scanmatcher_frame /base_link 40" />
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_back_laser" args="-0.1 0.0 0.22 3.14 0.0 0.0 /base_link /back_laser 10" />
+
+  <!--node pkg="laser_assembler" type="laser_scan_assembler" name="bastard_assembler">
+    <remap from="scan" to="temp_scan"/>
+    <param name="max_scans" type="int" value="20" />
+    <param name="fixed_frame" type="string" value="base_link" />
+  </node-->
 
   <!-- hector mapping -->
   <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
