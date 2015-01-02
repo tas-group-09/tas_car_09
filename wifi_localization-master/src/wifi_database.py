@@ -16,9 +16,14 @@ from geometry_msgs.msg import PoseWithCovariance
 dbLoc = "database.pk"
 
 injectLoc = (0,0)
+oldLoc = (9,9)
+counter = 0
+tempDatabase = {}
+
 
 def injectLocation(msg):
 	
+	oldLoc = injectLoc
 	injectLoc = (msg.pose.x,msg.pose.y)
 	print injectLoc
 	
@@ -26,17 +31,32 @@ def injectLocation(msg):
 
 def injectWifi(data):
 
-	for spot in data.HotSpots:
-		
-		print spot.MAC, spot.dB
-		
-		if injectLoc in database:
-			locData = database[injectLoc]
-		else:
-			locData = {}
+	if counter >= 1000 and counter < 1020:
 
-		locData[spot.MAC] = spot.dB
-		database[injectLoc] = locData
+		counter = counter + 1
+	
+		if(pow(oldLoc[0]-injectLoc[0],2) + pow(oldLoc[1]-injectLoc[1],2) > 0.09):
+			counter = 0
+		
+		for spot in data.HotSpots:
+		
+			print spot.MAC, spot.dB
+
+			tempDatabase[spot.MAC] = spot.dB
+			
+
+	elif counter == 1020:
+
+		database[injectLoc] = tempDatabase
+		tempDatabase = {}
+		counter = 0
+		print
+		print	'Location added to Database'
+		print
+	
+
+	else:
+		counter = counter + 1
 
 	
 
@@ -49,7 +69,12 @@ def clean():
 
 def make():
 	global database
+	global tempDatabase	
+	global oldLoc
 	global injectLoc
+	global counter
+
+
 	try:
 		dbFile = open(dbLoc)
 		database = pickle.load(dbFile)
