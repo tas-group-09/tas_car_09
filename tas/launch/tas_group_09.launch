@@ -26,6 +26,22 @@
 <node pkg="wifi_lookup" type="wifi_publisher.py" name="wifi_publisher" respawn="false" output="screen" />
 -->
 
+<!--EXTENDED KALMAN (IMU + VISION ODOMETRY)-->
+<!--
+<node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+  <param name="output_frame" value="odom_combined"/>
+  <param name="base_footprint_frame" value="base_footprint"/>
+  <param name="freq" value="30.0"/>
+  <param name="sensor_timeout" value="1.0"/>  
+  <param name="odom_used" value="false"/>
+  <param name="imu_used" value="true"/>
+  <param name="vo_used" value="true"/>
+
+  <remap from="odom" to="pr2_base_odometry/odom" />
+</node>
+-->
+
+
 <!--navigation goals-->
 <node pkg="simple_navigation_goals" type="simple_navigation_goals_node" name="simple_navigation_goals_TAS09" respawn="false" output="screen" />
 

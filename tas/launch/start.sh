@@ -6,8 +6,8 @@ echo ""
 echo "The following actions are available:"
 
 
-PS3='Please select your corresponding action: '
-options=("Autonomous driving (RVIZ)" "Slalom Parcour" "Option 3" "Quit")
+PS3='Please select your corresponding action (4 => Quit): '
+options=("Autonomous driving (RVIZ)" "Slalom Parcour" "TAS-Group09 Launchfile" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -18,8 +18,9 @@ do
         "Slalom Parcour")
             echo "Executing slalom Parcour"
             ;;
-        "Option 3")
-            echo "you chose choice 3"
+        "TAS-Group09 Launchfile")
+            echo "Executing TAS-Group09 Launchfile"
+            roslaunch tas_group_09.launch
             ;;
         "Quit")
 	    echo "Shutting down ..."
