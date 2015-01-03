@@ -4,7 +4,6 @@ import roslib; roslib.load_manifest('wifi_lookup')
 import rospy, os, re
 from wifi_lookup.msg import WifiData, Wifi
 
-
 class DataNode():
 	def __init__(self):
 		pub = rospy.Publisher('wifi_data', WifiData)
@@ -23,6 +22,7 @@ class DataNode():
 			msg = WifiData()
 
 			for i in range(len(essids)):
+				#if (essids[i] == rospy.get_param('~ssid', 'restricted.utexas.edu')):
 				temp = Wifi()			    
 				temp.MAC = addresses[i] 
 				temp.dB = int(signals[i])
@@ -33,7 +33,7 @@ class DataNode():
 			r.sleep()
 
 if __name__ == '__main__':
-	rospy.init_node('wifi_publisher')
+	rospy.init_node('wifi_data')
 	try:
 		node = DataNode()
 	except rospy.ROSInterruptException: pass
