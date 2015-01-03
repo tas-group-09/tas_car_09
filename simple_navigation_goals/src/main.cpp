@@ -10,6 +10,12 @@
 
 using namespace std;
 
+//ToDo: External access (e.g. Wii-Remote)
+//Switching variable for slalom true / false
+bool slalom = false;
+
+
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 /**
@@ -40,6 +46,93 @@ void feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr& feedback) {
 int main(int argc, char** argv){
     ros::init(argc, argv, "simple_navigation_goals"); // init and set name
     std::vector<geometry_msgs::Pose> waypoints; // vector of goals, with position and orientation
+
+
+    //waypoint selection based on selected activity (slalom <-> autonomous drive)
+    if(slalom)
+    {
+    ROS_INFO("###### SLALOM-MODE active #####");
+
+    // INFO - Waypoints Slalom
+    // ##║           ║#######
+    // ##║     5     ╚════════
+    // ##║
+    // ##║
+    // ##║  4  P
+    // ##║           ╔════════
+    // ##║           ║########
+    // ##║     P  3  ║##
+    // ##║           ║##
+    // ##║           ║##
+    // ##║  2  P     ║##
+    // ##║           ║##
+    // ##║           ║##
+    // ##║     P  1  ║##
+    // ##║           ║##   1,2,3,...: Waypoint No. 1,2,3,...
+    // ##║   ┌───┐   ║##   P: Pylon
+    // ##║   │ S │   ║##   S: Start
+    // ##║   └───┘   ║##
+
+
+    // Waypoint 1
+    geometry_msgs::Pose waypoint1;
+    waypoint1.position.x = 23.0;
+    waypoint1.position.y = 16.9;
+    waypoint1.position.z = 0.000;
+    waypoint1.orientation.x = 0.000;
+    waypoint1.orientation.y = 0.000;
+    waypoint1.orientation.z = -0.586277589703;
+    waypoint1.orientation.w = 0.81011023189;
+    waypoints.push_back(waypoint1);
+
+    // Waypoint 2
+    geometry_msgs::Pose waypoint2;
+    waypoint2.position.x = 24.2;
+    waypoint2.position.y = 15.0;
+    waypoint2.position.z = 0.000;
+    waypoint2.orientation.x = 0.000;
+    waypoint2.orientation.y = 0.000;
+    waypoint2.orientation.z = -0.586277589703;
+    waypoint2.orientation.w = 0.81011023189;
+    waypoints.push_back(waypoint2);
+
+    // Waypoint 3
+    geometry_msgs::Pose waypoint3;
+    waypoint3.position.x = 22.7;
+    waypoint3.position.y = 13.5;
+    waypoint3.position.z = 0.000;
+    waypoint3.orientation.x = 0.000;
+    waypoint3.orientation.y = 0.000;
+    waypoint3.orientation.z = -0.586277589703;
+    waypoint3.orientation.w = 0.81011023189;
+    waypoints.push_back(waypoint3);
+
+    // Waypoint 4
+    geometry_msgs::Pose waypoint4;
+    waypoint4.position.x = 23.9;
+    waypoint4.position.y = 11.9;
+    waypoint4.position.z = 0.000;
+    waypoint4.orientation.x = 0.000;
+    waypoint4.orientation.y = 0.000;
+    waypoint4.orientation.z = -0.586277589703;
+    waypoint4.orientation.w = 0.81011023189;
+    waypoints.push_back(waypoint4);
+
+    // Waypoint 5
+    geometry_msgs::Pose waypoint5;
+    waypoint5.position.x = 23.2;
+    waypoint5.position.y = 9.37;
+    waypoint5.position.z = 0.000;
+    waypoint5.orientation.x = 0.000;
+    waypoint5.orientation.y = 0.000;
+    waypoint5.orientation.z = -0.586277589703;
+    waypoint5.orientation.w = 0.81011023189;
+    waypoints.push_back(waypoint5);
+
+    }
+    else
+    {
+    ROS_INFO("###### DRIVING-MODE active #####");
 
     // Corner 1/1
     geometry_msgs::Pose waypoint1;
@@ -311,6 +404,10 @@ int main(int argc, char** argv){
     waypoint12.orientation.w = 1;
     waypoints.push_back(waypoint12);
 */
+    }
+
+
+
 
     MoveBaseClient ac("move_base", true); // action client to spin a thread by default
 
