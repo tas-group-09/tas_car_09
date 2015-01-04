@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('wifi_lookup')
+import roslib;
 import rospy, os, re
-from wifi_lookup.msg import WifiData, Wifi
+from wifi_localization.msg import WifiData, Wifi
 
 
 class DataNode():
 	def __init__(self):
-		pub = rospy.Publisher('wifi_data', WifiData)
+		pub = rospy.Publisher('wifi_data', WifiData, queue_size=2)
 
 		r = rospy.Rate(rospy.get_param('~rate', 1))
 		while not rospy.is_shutdown():

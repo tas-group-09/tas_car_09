@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('wifi_lookup')
+import roslib;
 import rospy, pickle, sys
-from wifi_lookup.msg import WifiData, Wifi
+from wifi_localization.msg import WifiData, Wifi
 from geometry_msgs.msg import PoseWithCovariance
+from wiimote.msg import State
 
 # Daten sind in der Form: 
 # database={injectLoc1: {'MAC_ADDR1': spot.dB, 'MAC_ADDR2': spot.dB}, 
@@ -17,46 +18,56 @@ dbLoc = "database.pk"
 
 injectLoc = (0,0)
 oldLoc = (9,9)
-counter = 0
+
+recordWifi = false
+
 tempDatabase = {}
+
+def wiimote_callback(msg):
+	if(msg.buttons[1] == 1):
+		if(recordWifi == false):
+			print 'Wifi Recording -> STARTED'
+			
+		recordWifi = true
+	else:
+		if(recordWifi == true):
+			print 'Wifi Recording -> ENDED'
+		
+		recordWifi = false
+	
+
 
 
 def injectLocation(msg):
 	
 	oldLoc = injectLoc
-	injectLoc = (msg.pose.x,msg.pose.y)
+	injectLoc = (msg.pose.position.x,msg.pose.position.y)
 	print injectLoc
 	
 
 
 def injectWifi(data):
 
-	if counter >= 1000 and counter < 1020:
-
-		counter = counter + 1
-	
-		if(pow(oldLoc[0]-injectLoc[0],2) + pow(oldLoc[1]-injectLoc[1],2) > 0.09):
-			counter = 0
+	if recordWifi == true:
 		
 		for spot in data.HotSpots:
 		
 			print spot.MAC, spot.dB
-
 			tempDatabase[spot.MAC] = spot.dB
 			
 
-	elif counter == 1020:
+	elif recordWifi == false and len(tempDatabase) > 0:
 
 		database[injectLoc] = tempDatabase
 		tempDatabase = {}
-		counter = 0
+
 		print
 		print	'Location added to Database'
 		print
 	
 
 	else:
-		counter = counter + 1
+		tempDatabase = {}
 
 	
 
@@ -69,10 +80,12 @@ def clean():
 
 def make():
 	global database
-	global tempDatabase	
+	global tempDatabase
+	
 	global oldLoc
 	global injectLoc
-	global counter
+
+	global recordWifi
 
 
 	try:
@@ -84,6 +97,7 @@ def make():
 
 	rospy.Subscriber('wifi_data', WifiData, injectWifi)
 	rospy.Subscriber('amcl_pose',PoseWithCovariance,injectLocation)
+	rospy.Subscriber('wiimote/state',State,wiimote_callback)
 	rospy.spin()
 
 if __name__=='__main__':

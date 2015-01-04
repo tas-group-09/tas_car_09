@@ -22,7 +22,7 @@ class DataNode():
 			msg = WifiData()
 
 			for i in range(len(essids)):
-				#if (essids[i] == rospy.get_param('~ssid', 'restricted.utexas.edu')):
+
 				temp = Wifi()			    
 				temp.MAC = addresses[i] 
 				temp.dB = int(signals[i])

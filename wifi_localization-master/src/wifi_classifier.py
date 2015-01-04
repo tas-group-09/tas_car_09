@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('wifi_lookup')
+import roslib;
 import rospy, pickle
-from wifi_lookup.msg import WifiData, Wifi
+from wifi_localization.msg import WifiData, Wifi
 from geometry_msgs.msg import PoseWithCovariance
 
 dbLoc = "database.pk"
@@ -53,7 +53,7 @@ def WifiCallback(data):
 			# Merge all Mac addresses
 			for measurement_MAC in all_MAC_measurements:
 				if measurement_MAC not in all_MAC:
-				PoseWithCovariance	all_MAC.append(measurement_MAC)
+					all_MAC.append(measurement_MAC)
 			
 			# Reset the error
 			error = 0		
@@ -101,9 +101,6 @@ def WifiCallback(data):
  
 
 			measurement_database = {}
-
-		
-		msg = PoseWithCovariance()
 		
 		x = 0
 		y = 0
@@ -117,6 +114,8 @@ def WifiCallback(data):
 			covariance.append(0)
 		
 
+		msg = PoseWithCovariance()
+	
 		msg.pose.position.x = x/k
 		msg.pose.position.y = y/k
 		msg.pose.position.z = 0
@@ -129,15 +128,18 @@ def WifiCallback(data):
 
 		print '[',x,',',y,']'
 
+		pub.publish(msg)
 
-#deserialize the object and do ROS things
+
+# load the database
 def make():
 	global database
-	global pub = rospy.Publisher('initialLocation_TEST', PoseWithCovariance, queue_size=10)
+	global pub
 	
 	global measurement_database
 	global iteration_counter
 
+	pub = rospy.Publisher('initialLocation_TEST', PoseWithCovariance, queue_size=10)
 
 	try:
 		dbFile = open(dbLoc)
@@ -152,7 +154,8 @@ def make():
 	rospy.Subscriber('wifi_data', WifiData, WifiCallback)
 	rospy.spin()
 
-#Add publisher ROS things
+
+# tbd
 if __name__=='__main__':
 	rospy.init_node('wifi_classifier')
 	try:
