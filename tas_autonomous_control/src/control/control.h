@@ -36,6 +36,8 @@ public:
 
     geometry_msgs::Vector3 control_servo;
 
+    bool isAutomaticControlOn;
+
 private:
     /* subscribe the cmd message from move_base */
     void cmdCallback(const geometry_msgs::Twist::ConstPtr& msg);

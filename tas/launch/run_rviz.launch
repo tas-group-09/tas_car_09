@@ -13,6 +13,9 @@
   <!-- Set up move base package-->
   <include file="$(find tas)/launch/move_base.launch" />
 
+  <!-- Set up move base package-->
+  <include file="$(find tas)/launch/tas_group_09.launch" />
+
   <!-- Run rviz -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tas)/launch/config/rviz/tas_rviz.rviz" />
 
