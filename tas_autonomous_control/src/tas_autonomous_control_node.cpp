@@ -1,5 +1,28 @@
 #include "control/control.h"
+#include <ros/ros.h>
+#include <tf/transform_datatypes.h>
+#include <sensor_msgs/LaserScan.h>
+#include <math.h>
 
+
+/*void laserCallback(const sensor_msgs::LaserScan & msg)
+{
+
+const unsigned int N = msg.ranges.size();
+const double angel_res = msg.angle_increment;
+//const unsigned int front_spann = (int)((FRONT_RES * GRAD_TO_RAD)/angel_res);
+double frontDistance;
+
+int i = 0;
+frontDistance = 0.0;
+// frontDistance is the average distance of 60 degree angle
+for (i=0; i < front_spann*2; i++)
+{
+frontDistance += msg.ranges[i + N/2 - front_spann];
+}
+frontDistance = frontDistance/(front_spann*2);
+}
+*/
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "autonomous_control");
@@ -7,11 +30,18 @@ int main(int argc, char** argv)
 
     ros::Rate loop_rate(50);
 
+    bool isAutomaticControlOn=false;
+
     while(ros::ok())
     {
         if(autonomous_control.control_Mode.data==0)
         {
-            ROS_INFO("Manually Control!");
+            if(isAutomaticControlOn==true){
+               //ROS_INFO("Manually Control!");
+               ROS_INFO("Switch to Manual Control!");
+               isAutomaticControlOn=false;
+            }
+
         }
         else
         {
@@ -22,7 +52,12 @@ int main(int argc, char** argv)
             }
             else
             {
-                ROS_INFO("Automatic Control!");
+                if(isAutomaticControlOn==false){
+                   //ROS_INFO("Automatic Control!");
+                   ROS_INFO("Switch to Automatic Control!");
+                   isAutomaticControlOn=true;
+                }
+
                 if(autonomous_control.cmd_linearVelocity>0)
                 {
                     autonomous_control.control_servo.x = 1550;
