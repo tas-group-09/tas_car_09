@@ -5,34 +5,84 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Path
 
-#from nav_msgs.msg/getPlan.srv   import *
+from nav_msgs.srv   import GetPlan 
 
 
 global tolerance
 
 
 
-def computePathLength(start, goal):
+def computePathLength(startPose, goalPose):
 
     global tolerance
 
-    tolerance = 1
+    tolerance = 0.1
 
-    rospy.wait_for_service('make_plan')
+    startPose = Pose()
+    startPose.position.x = 10.0
+    startPose.position.y = 8.0
+    startPose.position.z = 0.000
+    startPose.orientation.x = 0.000
+    startPose.orientation.y = 0.000
+    startPose.orientation.z = -0.586277589703
+    startPose.orientation.w = 0.81011023189
+
+    goalPose = Pose()
+    goalPose.position.x = 12.0
+    goalPose.position.y = 9.0
+    goalPose.position.z = 0.000
+    goalPose.orientation.x = 0.000
+    goalPose.orientation.y = 0.000
+    goalPose.orientation.z = -0.586277589703
+    goalPose.orientation.w = 0.81011023189
+
+
+    print "////////////////////////////////////////////////////"
+    print "START = ",startPose
+    print "////////////////////////////////////////////////////"
+    print
+    print	
+    print "////////////////////////////////////////////////////"
+    print "ENDE = ",goalPose
+    print "////////////////////////////////////////////////////"
+
+    rospy.wait_for_service('move_base_node/make_plan')
+    
+    print "Plan available"
 
     try:
-        make_plan_connection = rospy.ServiceProxy('make_plan', makePlan)
-        path = make_plan_connection(start,goal,tolerance)
+        make_plan_connection = rospy.ServiceProxy('move_base_node/NavfnROS/make_plan', GetPlan)
+        #make_plan_connection = rospy.ServiceProxy('move_base_node/make_plan', GetPlan)
+	start = PoseStamped()
+	goal = PoseStamped()
+
+	start.header.stamp  = rospy.get_rostime()
+	goal.header.stamp  = rospy.get_rostime()
+
+	start.header.frame_id  = '/map'
+	goal.header.frame_id  = '/map'
+
+	start.pose = startPose
+	goal.pose = goalPose
+
+        response = make_plan_connection(start,goal,tolerance)
     
+    	print
+    	print	
+    	print "////////////////////////////////////////////////////"
+    	print response
+    	print "////////////////////////////////////////////////////"
+	print len(response.plan.poses)
+
         distance = 0
-        currentPosition = (start.pose.pose.position.x, start.pose.pose.position.y)
+        currentPosition = (start.pose.position.x, start.pose.position.y)
         nextPosition = (0,0)
     
-        for position in path:
+        for pose_on_Path in response.plan.poses:
             
-            nextPosition = (position.pose.pose.position.x, position.pose.pose.position.y)
+            nextPosition = (pose_on_Path.pose.position.x, pose_on_Path.pose.position.y)
 
-            distance = distance + sqrt((currentPosition[0] - nextPosition[0])**2 + (currentPosition[1] - nextPosition[1])**2)
+            distance = distance + ((currentPosition[0] - nextPosition[0])**2 + (currentPosition[1] - nextPosition[1])**2)**(1/2)
 
             currentPosition = nextPosition
 
@@ -68,7 +118,9 @@ def computeOrientation(start, goal):
 
     
 def computeOptimalPath(initialPose):
-    
+
+    rospy.init_node('PathPlanner', anonymous=True)    
+
     unorderedWaypoints = []
     orderedWaypoints = []
     
@@ -94,7 +146,7 @@ def computeOptimalPath(initialPose):
     waypoint2.orientation.x = 0.000
     waypoint2.orientation.y = 0.000
     waypoint2.orientation.z = -0.37746662823
-    waypoint2.orientation.w = 0.926023187924
+    waypoint2.orientation.w =0.81011023189
     
     unorderedWaypoints.append(waypoint2)
 
@@ -107,7 +159,7 @@ def computeOptimalPath(initialPose):
     waypoint3.orientation.x = 0.000
     waypoint3.orientation.y = 0.000
     waypoint3.orientation.z = -0.0969236885705
-    waypoint3.orientation.w = 0.995291815798
+    waypoint3.orientation.w = 0.81011023189
     
     unorderedWaypoints.append(waypoint3)
     
@@ -119,7 +171,7 @@ def computeOptimalPath(initialPose):
     waypoint4.orientation.x = 0.000
     waypoint4.orientation.y = 0.000
     waypoint4.orientation.z = 0.0997332827304
-    waypoint4.orientation.w = 0.995014207092
+    waypoint4.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint4)
 
@@ -131,7 +183,7 @@ def computeOptimalPath(initialPose):
     waypoint5.orientation.x = 0.000
     waypoint5.orientation.y = 0.000
     waypoint5.orientation.z = 0.687557328387
-    waypoint5.orientation.w = 0.726130098661
+    waypoint5.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint5)
 
@@ -143,7 +195,7 @@ def computeOptimalPath(initialPose):
     waypoint6.orientation.x = 0.000
     waypoint6.orientation.y = 0.000
     waypoint6.orientation.z = 0.679364543684
-    waypoint6.orientation.w = 0.73380093812
+    waypoint6.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint6)
 
@@ -155,7 +207,7 @@ def computeOptimalPath(initialPose):
     waypoint7.orientation.x = 0.000
     waypoint7.orientation.y = 0.000
     waypoint7.orientation.z = 0.803224655087
-    waypoint7.orientation.w = 0.595676215288
+    waypoint7.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint7)
 
@@ -167,7 +219,7 @@ def computeOptimalPath(initialPose):
     waypoint8.orientation.x = 0.000
     waypoint8.orientation.y = 0.000
     waypoint8.orientation.z = 0.968665283717
-    waypoint8.orientation.w = 0.248369821278
+    waypoint8.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint8)
     
@@ -179,7 +231,7 @@ def computeOptimalPath(initialPose):
     waypoint9.orientation.x = 0.000
     waypoint9.orientation.y = 0.000
     waypoint9.orientation.z = 0.999914720206
-    waypoint9.orientation.w = 0.00726689410215
+    waypoint9.orientation.w = 0.81011023189
     
     unorderedWaypoints.append(waypoint9)
     
@@ -191,7 +243,7 @@ def computeOptimalPath(initialPose):
     waypoint10.orientation.x = 0.000
     waypoint10.orientation.y = 0.000
     waypoint10.orientation.z = -0.997499162385
-    waypoint10.orientation.w = 0.0706782925783
+    waypoint10.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint10)
     
@@ -203,7 +255,7 @@ def computeOptimalPath(initialPose):
     waypoint11.orientation.x = 0.00
     waypoint11.orientation.y = 0.000
     waypoint11.orientation.z = -0.87778145924
-    waypoint11.orientation.w = 0.47906127981
+    waypoint11.orientation.w = 0.81011023189
 
     unorderedWaypoints.append(waypoint11)
 
@@ -215,22 +267,27 @@ def computeOptimalPath(initialPose):
     waypoint12.orientation.x = 0.000
     waypoint12.orientation.y = 0.000
     waypoint12.orientation.z = -0.715423519161
-    waypoint12.orientation.w = 0.698691053493
+    waypoint12.orientation.w = 0.81011023189
     
     unorderedWaypoints.append(waypoint12)
     
     #while len(unorderedWaypoints) != 0:
     
-    #    minimalDistance     = 9999
-    #    closestPose         = Pose()
-    #    closestPose_Index   = 9999
+    minimalDistance     = 9999
+    closestPose         = Pose()
+    closestPose_Index   = 9999
 
     
-    #    currentPose = initialPose
+    currentPose = initialPose
     
     #    for pose in unorderedWaypoints:
+    pose = unorderedWaypoints[5]
+    distance = computePathLength(currentPose,pose)
 
-    #        distance = computePathLength(currentPose,pose)
+    print "////////////////////////////////////////////////////"
+    print distance
+    print "////////////////////////////////////////////////////"
+
 
     #       if(distance < minimalDistance):
     #            minimalDistance = distance
@@ -267,10 +324,10 @@ def computeOptimalPath(initialPose):
 	
 
     #print unorderedWaypoints
-    print
-    print "//////////////////////////////////////////////////////////////////////////////"
-    print
-    print targetPath
+    #print
+    #print "//////////////////////////////////////////////////////////////////////////////"
+    #print
+    #print targetPath
 
     rospy.sleep(10.0)
 
