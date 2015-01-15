@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(wifi_localization)
+project(slalom)
 
 # Find the catkin build system and the other dependent packages
 find_package(catkin REQUIRED COMPONENTS rospy std_msgs geometry_msgs message_generation)
 
 
-add_message_files(
-  FILES
-  Wifi.msg
-  WifiData.msg
-)
+#add_message_files(
+#  FILES
+#)
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(

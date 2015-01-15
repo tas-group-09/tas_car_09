@@ -77,9 +77,10 @@ int main(int argc, char** argv){
 
     while(ros::ok())
     {
-
         if(waypoints.size() != 0)
         {
+            std::cout << "I am in" << std::endl;
+
             //std::cout << std::endl << std::endl << std::endl << "New Array" << std::endl;
 
             for(int i = 0; i < waypoints.size(); ++i)
@@ -87,32 +88,32 @@ int main(int argc, char** argv){
                 //std::cout << "Waypoint"<< i << "[" <<waypoints[i].position.x << ", " << waypoints[i].position.y << "]" << std::endl;
 
             }
-//                while (!ac.waitForServer(ros::Duration(5.0))) { // wait for the action server to come up
-//                ROS_INFO("Waiting for the move_base action server to come up");
-//            }
+                while (!ac.waitForServer(ros::Duration(5.0))) { // wait for the action server to come up
+                ROS_INFO("Waiting for the move_base action server to come up");
+            }
 
-//            move_base_msgs::MoveBaseGoal goal;
-//            goal.target_pose.header.frame_id = "map"; // set target pose frame of coordinates
+            move_base_msgs::MoveBaseGoal goal;
+            goal.target_pose.header.frame_id = "map"; // set target pose frame of coordinates
 
-//            for(int i = 0; i < waypoints.size(); ++i) { // loop over all goal points, point by point
-//                goal.target_pose.header.stamp = ros::Time::now(); // set current time
-//                goal.target_pose.pose = waypoints.at(i);
-//                ROS_INFO("Sending goal");
-//                ac.sendGoal(goal, &doneCb, &activeCb, &feedbackCb); // send goal and register callback handler
-//                ac.waitForResult(); // wait for goal result
+            for(int i = 0; i < waypoints.size(); ++i) { // loop over all goal points, point by point
+                goal.target_pose.header.stamp = ros::Time::now(); // set current time
+                goal.target_pose.pose = waypoints.at(i);
+                ROS_INFO("Sending goal");
+                ac.sendGoal(goal, &doneCb, &activeCb, &feedbackCb); // send goal and register callback handler
+                ac.waitForResult(); // wait for goal result
 
-//                if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-//                    ROS_INFO("The base moved to %d goal", i);
-//                } else {
-//                    ROS_INFO("The base failed to move to %d goal for some reason", i);
-//                }
-//            }
+                if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                    ROS_INFO("The base moved to %d goal", i);
+                } else {
+                    ROS_INFO("The base failed to move to %d goal for some reason", i);
+                }
+            }
         }
 
 
 
         ros::spinOnce();
-        loop_rate.sleep();
+        //loop_rate.sleep();
 
     }
 
