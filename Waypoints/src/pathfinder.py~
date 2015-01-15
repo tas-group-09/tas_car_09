@@ -372,7 +372,7 @@ def computeOptimalPath(initialPose):
 
 	    targetPath = Path()
 
-	    for temp_waypoint in orderedWaypoints:
+	    for temp_waypoint in unorderedWaypoints:
 		tempPose = PoseStamped()
 		tempPose.header.stamp = rospy.get_rostime()
 		tempPose.pose = temp_waypoint
