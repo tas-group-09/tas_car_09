@@ -55,7 +55,7 @@ void control::cmdCallback(const geometry_msgs::Twist::ConstPtr& msg)
     cmd_steeringAngle = 180/PI*atan(cmd_angularVelocity/cmd_linearVelocity*CAR_LENGTH);
 
     cmd_steeringAngle = 1500 + 500/30*cmd_steeringAngle;
-r
+
     if(cmd_steeringAngle > 2000)
     {
         cmd_steeringAngle = 2000;
@@ -106,7 +106,7 @@ void control::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     //std::cout << "laserCallback: Summe " << frontDistance<< std::endl;
 
     frontDistance = frontDistance/((double) counter);
-    std::cout << "laserCallback: frontDistance " << frontDistance<< std::endl;
+    //std::cout << "laserCallback: frontDistance " << frontDistance<< std::endl;
 
 
     /* Data Structure not finished yet (05.01.)

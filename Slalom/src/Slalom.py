@@ -8,6 +8,9 @@
 #   |  erstellt: WS 2014/2015 - (c) Tim Stahl  |
 #   |__________________________________________|
 
+#  Inflation Radius von 0.25
+#  scaling_offset = (std::abs((autonomous_control.cmd_steeringAngle)-1500))/25;
+
 
 ### INFO - Waypoints Slalom
 ###|           |########
@@ -75,6 +78,35 @@ def pose_callback(msg):
 	pose = (msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
 	pose_received = True
 
+# Send Scan Position to Path Planner
+def sendScanPosition():
+	rate = rospy.Rate(100) # 100hz
+
+    	pub = rospy.Publisher('goals', Path, queue_size=10, latch=True)
+	
+	msg = Path()
+	targetPose = PoseStamped()
+
+	targetPose.header.frame_id = 'map'
+	targetPose.header.stamp = rospy.get_rostime()
+
+	targetPose.pose.position.x = 24.3
+	targetPose.pose.position.y = 16.8
+	targetPose.pose.position.z = 0
+
+	quaternion = quaternion_from_euler(0,0,-90 *math.pi/180)
+
+	targetPose.pose.orientation.x = quaternion[0]
+	targetPose.pose.orientation.y = quaternion[1]
+	targetPose.pose.orientation.z = quaternion[2]
+	targetPose.pose.orientation.w = quaternion[3]
+
+	msg.poses.append(targetPose)
+
+	pub.publish(msg)
+
+	
+
 # Calculate waypoints
 def calculateWaypoints():
 	global ranges
@@ -89,8 +121,9 @@ def calculateWaypoints():
     	pub = rospy.Publisher('goals', Path, queue_size=10, latch=True)
  	
 	while not (rospy.is_shutdown()):
-
-		if (pose_received and len(ranges) > 0 and published == False):
+		
+		# If pose and ranges received         and not published      and near scan position
+		if (pose_received and len(ranges) > 0 and published == False and pose[1] < 17.7):
 
 			# PARAMETERS FOR OBJECT DETECTION AND WAYPOINT GENERATION
 			detection_offset = 0.4		# Distance which pylons are (min.) closer than the wall; half hall width recomended
@@ -98,6 +131,7 @@ def calculateWaypoints():
 			max_width_object = 0.15		# Max. witdh of detected objects (in m)	
 			max_nmb_objects  = 4		# Max. number of detected objects	
 			waypoint_offset = 0.4		# Distance how far waypoint is set away from pylon (affects WP1, WP3 and WP5)	
+			radius_pylon = 0.03		# Radius of Pylon (on scanner height)
 
 
 			# DETERMINE OBJECTS IN RANGE
@@ -145,8 +179,6 @@ def calculateWaypoints():
 
 			if (nmb_detected_objects < 2) or (nmb_detected_objects > max_nmb_objects):
 				print "Error: number of objects not in the permitted range (Detected objects: ", nmb_detected_objects, ")"
-				b=1			
-				pass
 
 			else:
 				print "Success: ", nmb_detected_objects, " objects detected"
@@ -157,8 +189,11 @@ def calculateWaypoints():
 			
 					(unused1, unused2, alpha) = euler_from_quaternion((0,0,pose[2],pose[3]))
 					alpha = alpha * 180 / math.pi + (detected_objects_increment[i] + angle_min * 180 / math.pi)
+					
+					# Correction factor to get pylon point into center of object
+					correction_factor = (1 + radius_pylon/detected_objects_distance[i])					
 
-					detected_objects_points.append((pose[0] + detected_objects_distance[i] * math.cos(alpha * math.pi / 180), pose[1] + detected_objects_distance[i] * math.sin(alpha * math.pi/180)))
+					detected_objects_points.append((pose[0] + detected_objects_distance[i] * correction_factor * math.cos(alpha * math.pi / 180), pose[1] + detected_objects_distance[i] * correction_factor * math.sin(alpha * math.pi/180)))
 
 					i += 1
 
@@ -175,11 +210,9 @@ def calculateWaypoints():
 					i += 1
 		
 				if (mean_distance < 1) or (mean_distance > 2):
-					b=1
 					print "Error: calculated mean_distance between objects out of range [1m, 2m]"
 		
 				else:
-					b=1
 					print "Calculated mean distance between objects: ", mean_distance, "m"
 			
 					# Select reference point with shortest distance to car
@@ -190,13 +223,20 @@ def calculateWaypoints():
 						target_vector = (detected_objects_points[i-1][0] - detected_objects_points[i][0], detected_objects_points[i-1][1] - detected_objects_points[i][1])
 					else:
 						target_vector = (detected_objects_points[i+1][0] - detected_objects_points[i][0], detected_objects_points[i+1][1] - detected_objects_points[i][1])
+					
+					# If second Pylon was recognized as first one (due to hardware issues / faulty scan data)
+					if (detected_objects_distance[i] > 1.2):
+						reference_point = (detected_objects_points[i][0] - target_vector[0], detected_objects_points[i][1] - target_vector[1])			
+					else:
+						reference_point = detected_objects_points[i]   # Reference point is first pylon
+
 
 					# Calculate waypoints between each pylon
-					reference_point = detected_objects_points[i]   # Reference point is first pylon
+					
 					waypoints[0] = (reference_point[0] + target_vector[0]/2, reference_point[1] + target_vector[1]/2)
 					waypoints[2] = (reference_point[0] + 3*target_vector[0]/2, reference_point[1] + 3*target_vector[1]/2)
 					waypoints[4] = (reference_point[0] + 5*target_vector[0]/2, reference_point[1] + 5*target_vector[1]/2)
-					waypoints[6] = (reference_point[0] + 7*target_vector[0]/2, reference_point[1] + 7*target_vector[1]/2)
+					waypoints[6] = (reference_point[0] + 9*target_vector[0]/2, reference_point[1] + 9*target_vector[1]/2)
 
 					# Calculate orthogonal vector in relation to target vector (applying cross product)
 					norm_factor = waypoint_offset / numpy.sqrt(target_vector[0]**2 + target_vector[1]**2)
@@ -205,34 +245,47 @@ def calculateWaypoints():
 					# Calculate waypoints besides each pylon
 					waypoints[1] = (reference_point[0] + target_vector[0] + orthogonal_target_vector[0], reference_point[1] + target_vector[1] + orthogonal_target_vector[1])
 					waypoints[3] = (reference_point[0] + 2*target_vector[0] - orthogonal_target_vector[0], reference_point[1] + 2*target_vector[1] - orthogonal_target_vector[1])
-					waypoints[5] = (reference_point[0] + 3*target_vector[0] + orthogonal_target_vector[0], reference_point[1] + 3*target_vector[1] + orthogonal_target_vector[1])
+					waypoints[5] = (reference_point[0] + 3*target_vector[0] + orthogonal_target_vector[0] +0.05, reference_point[1] + 3*target_vector[1] + orthogonal_target_vector[1])
+					
+					print
+					print "Calculated Waypoints: ", waypoints
+					print
+					
+					# For debuging reasons
+					#print "Pose: ", pose
+					#print "Ranges: ", ranges
+					#print
+
+					# Publish all waypoints
+					msg = Path()
+
+					for i in range(7):
+
+						wpts = PoseStamped()
+
+						wpts.header.frame_id = 'map'
+						wpts.header.stamp = rospy.get_rostime()
+
+	
+						wpts.pose.position.x = waypoints[i][0]
+						wpts.pose.position.y = waypoints[i][1]
+						wpts.pose.position.z = 0
+					
+
+						wpts_quaternion = quaternion_from_euler(0,0,-94 *math.pi/180)
 
 
-				# Publish all waypoints
-				msg = Path()
-
-				for i in range(7):
-
-					wpts = PoseStamped()
-
-					wpts.header.frame_id = 'map'
-					wpts.header.stamp = rospy.get_rostime()
-
-					wpts.pose.position.x = waypoints[i][0]
-					wpts.pose.position.y = waypoints[i][1]
-					wpts.pose.position.z = 0
-
-					wpts.pose.orientation.x = 0
-					wpts.pose.orientation.y = 0
-					wpts.pose.orientation.z = -0.586
-					wpts.pose.orientation.w = 0.81011023189
+						wpts.pose.orientation.x = wpts_quaternion[0]
+						wpts.pose.orientation.y = wpts_quaternion[1]
+						wpts.pose.orientation.z = wpts_quaternion[1]
+						wpts.pose.orientation.w = wpts_quaternion[2]
 			
-					msg.poses.append(wpts)
+						msg.poses.append(wpts)
 
-				if(published == False):
-					print msg
-					pub.publish(msg)
-					published = True
+					if(published == False):
+						#print msg
+						pub.publish(msg)
+						published = True
 
 		#sleep
         	#rate.sleep()
@@ -247,7 +300,7 @@ if __name__ == '__main__':
 		pose_received = False
 		published = False
 
-
+		print 'Slalom went Active'
 
 		ranges = []
 		pose = (99,99,99,99)
@@ -257,6 +310,8 @@ if __name__ == '__main__':
     
 		rospy.Subscriber('amcl_pose',PoseWithCovarianceStamped,pose_callback)
 		rospy.Subscriber('scan',LaserScan,scan_callback)
+
+		sendScanPosition()		
 
         	calculateWaypoints()
     

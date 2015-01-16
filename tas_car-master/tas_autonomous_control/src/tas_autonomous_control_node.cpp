@@ -49,7 +49,7 @@ int main(int argc, char** argv)
                     
                     //std::cout << "Main \t servo x = " << newSpeed << std::endl;
                     
-                    autonomous_control.control_servo.x = newSpeed; // before: 1550
+                    autonomous_control.control_servo.x = 1550; /*newSpeed;*/ // before: 1550
                 }
                 else if(autonomous_control.cmd_linearVelocity<0)
                 {
@@ -57,13 +57,16 @@ int main(int argc, char** argv)
                 }
                 else
                 {
-                    autonomous_control.control_servo.x = 1550;
+                    //ToDo
+                    double scaling_offset = (std::abs((autonomous_control.cmd_steeringAngle)-1500))/25;
+
+                    autonomous_control.control_servo.x = 1530 + scaling_offset;
                 }
                 
                 autonomous_control.control_servo.y = autonomous_control.cmd_steeringAngle;
             }
             
-            std::cout << "Servo = [" << autonomous_control.control_servo.x << "," << autonomous_control.control_servo.y << "]" << std::endl;
+            //std::cout << "Servo = [" << autonomous_control.control_servo.x << "," << autonomous_control.control_servo.y << "]" << std::endl;
             
             autonomous_control.control_servo_pub_.publish(autonomous_control.control_servo);
             
