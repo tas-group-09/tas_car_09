@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package>
+  <name>wifi_localization</name>
+  <version>0.9.0</version>
+  <description>This Wifi localization package uses a fingerprint database of wifi signal strength to determine the initial location. </description>
+
+  <maintainer email="TasGroup09@todo.de">TasGroup09</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>std_msgs</build_depend>
+  <run_depend>std_msgs</run_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <build_depend>rospy</build_depend>
+  <run_depend>rospy</run_depend>
+
+  <build_depend>message_generation</build_depend>
+  <run_depend>message_runtime</run_depend>
+
+
+</package>

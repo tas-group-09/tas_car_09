@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
   <name>pathfinder</name>
-  <version>0.0.1</version>
+  <version>0.8.0</version>
   <description>Pathfinder</description>
 
-  <maintainer email="jeversmann@todo.todo">jeversmann</maintainer>
+  <maintainer email="Tas_Group09@todo.de">TAS_Group09</maintainer>
 
   <license>TODO</license>
 
@@ -13,13 +13,17 @@
   <build_depend>std_msgs</build_depend>
   <run_depend>std_msgs</run_depend>
 
+  <build_depend>nav_msgs</build_depend>
+  <run_depend>nav_msgs</run_depend>
+  
   <build_depend>geometry_msgs</build_depend>
   <run_depend>geometry_msgs</run_depend>
 
   <build_depend>rospy</build_depend>
+  <run_depend>rospy</run_depend>
+
   <build_depend>message_generation</build_depend>
   <run_depend>message_runtime</run_depend>
 
-  <run_depend>rospy</run_depend>
 
 </package>

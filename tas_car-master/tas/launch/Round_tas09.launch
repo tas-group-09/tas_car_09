@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+  <master auto="start"/>
+  <param name="/use_sim_time" value="false"/>
+
+  <include file="$(find tas)/launch/run_rviz.launch" />
+
+  <node pkg="simple_navigation_goals_tas09" type="simple_navigation_goals_node_tas09" name="simple_navigation_goals_TAS09" respawn="false" output="screen" />
+  <node pkg="pathfinder" type="pathfinder.py" name="Pathfinder_TAS09" respawn ="false" output="screen" />
+  <node pkg="pathfinder" type="round_InitialLocation.py" name="Initial_Location_TAS09" respawn="false" output="screen" />
+
+
+</launch>

@@ -75,18 +75,15 @@ void control::wiiCommunicationCallback(const std_msgs::Int16MultiArray::ConstPtr
 /* calculate distances frontDistance, leftDistance, rightDistance for detecting corners */
 void control::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-
     const unsigned int N = msg->ranges.size();
     const double angleResolution = msg->angle_increment *180/M_PI; //TO DO: test!
 
     //std::cout << "laserCallback: N " << N<< std::endl;
     //std::cout << "laserCallback: angleResolution " << angleResolution << std::endl;
 
-    double frontDistance = 0.0; // average distance in front of the car for a 30 degree angle
-    double leftDistance = 1.0;  // average distance in the left of the car for a 30 degree angle
-    double rightDistance = 1.0; // average distance in the right of the car for a 30 degree angle
-    double minimumDistance = 10.0; // minimum distance to a detected object in the front
-
+    double frontDistance = 0.0; // average distance in front of the car for a 10 degree angle
+	double minimumDistance = 10.0; // minimum distance in front of the car for a 10 degree angle
+	
     // frontDistance
     int counter = 0;
     for (int i=N/2-5*(int)(1/angleResolution); i < N/2+5*(1/angleResolution); i++)
@@ -94,7 +91,9 @@ void control::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         if (msg->ranges[i]>0)
         {
         //std::cout << "laserCallback: i " << i<< std::endl;
-        frontDistance += msg->ranges[i];
+        
+		// approximation by computing average
+		frontDistance += msg->ranges[i];
         //std::cout << "laserCallback: msg->ranges[i] " << msg->ranges[i]<< std::endl;
 
         counter ++;
@@ -108,58 +107,19 @@ void control::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     frontDistance = frontDistance/((double) counter);
     //std::cout << "laserCallback: frontDistance " << frontDistance<< std::endl;
 
-
-    /* Data Structure not finished yet (05.01.)
-    // leftDistance
-    int counter = 0;
-    for (int i=N/2-round(15/angleResolution); i < N/2+round(15/angleResolution); i++)
-    {
-    leftDistance += msg.ranges[i];
-        counter ++;
-    }
-    leftDistance = leftDistance/(double) counter;
-
-    // rightDistance
-    int counter = 0;
-    for (int i=N/2-round(15/angleResolution); i < N/2+round(15/angleResolution); i++)
-    {
-    rightDistance += msg.ranges[i];
-        counter ++;
-    }
-    rightDistance = rightDistance/(double) counter;
-    */
-
-    leftDistance=1.0; rightDistance=1.0;
-
     /* now speed is adjusted to distances */
-    controlSpeed(frontDistance, leftDistance, rightDistance, minimumDistance);
+    controlSpeed(frontDistance);
 }
 
 /* control speed (ACC) if car is going straight */
-void control::controlSpeed(double frontDistance, double leftDistance, double rightDistance, double minimumDistance)
+void control::controlSpeed(double frontDistance)
 {
-    //std::cout << "Control Speed" << std::endl;
-
-    //    // Speed values are estimated based on Servo tests and default settings
-    //    if(minimumDistance < 0.2 || leftDistance < 0.2 || rightDistance < 0.2)
-    //    {
-    //        optimalSpeed = 1500;
-
-    //    } //break if closest object is <0.5m or too close to wall
-    //    else
-    //    {
-    // TO DO: State machine
-
-    // STRAIGHT
-    optimalSpeed= (frontDistance/10.0)*50 + 1550; //linear control function based on frontDistance
+    //std::cout << "controlSpeed" << std::endl;
+	
+	// STRAIGHT
+    optimalSpeed= (frontDistance/10.0)*30 + 1550; //linear control function based on frontDistance
 
     if(optimalSpeed>1600) optimalSpeed=1600; // for safety
-
-    //    }
-
-    //std::cout << "Control Speed \t Optimal Speed = " << optimalSpeed << std::endl;
-
-
 }
 
 int control::getNewSpeed()

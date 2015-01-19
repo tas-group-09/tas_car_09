@@ -8,9 +8,6 @@
 #   |  erstellt: WS 2014/2015 - (c) Tim Stahl  |
 #   |__________________________________________|
 
-#  Inflation Radius von 0.25
-#  scaling_offset = (std::abs((autonomous_control.cmd_steeringAngle)-1500))/25;
-
 
 ### INFO - Waypoints Slalom
 ###|           |########
@@ -145,7 +142,7 @@ def calculateWaypoints():
 			target_vector = []		# Vector pointing from one pylon to the next one
 			waypoints = [(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)]		# Waypoints with each [x, y]
 	
-
+			# Go through all laser scans 
 			while i < (len(ranges) - 1):
 				# Check if next range is closer than defined value and not compared to infinity (often faulty data)
 				if (ranges[i+1] < (ranges [i] - detection_offset)) and (ranges[i] < 999):
@@ -153,6 +150,7 @@ def calculateWaypoints():
 					print "Object-Candidate found (Distance: ", ranges[i+1], ")"
 					max_width_object_frames = (math.atan(max_width_object/(2*ranges[temp_i])*2)//increment)
 					
+					# Determine the width of the object
 					while (ranges[temp_i] < (ranges[i+1] + object_tolerance)) and (ranges[temp_i] > (ranges[i+1] - object_tolerance)) and (i <= (temp_i + max_width_object_frames)) and (i < len(ranges)-1):
 						i += 1
 
@@ -164,9 +162,12 @@ def calculateWaypoints():
 						print "-> Candidate selected"
 						print
 
+					# If object width to large -> print error
 					if not (i <= temp_i + max_width_object_frames):				
 						print "Error: Objectwidth to large = ", 2*ranges[temp_i]*math.tan(((i - temp_i)*increment)/2)
 						print
+
+					# If no sufficient jump of distance to wall -> print error
 					if not ((ranges[i+1]+ranges[i+2]+ranges[i+3]+ranges[i+4])/4 > (ranges[temp_i] + detection_offset)):
 						print "Error: Distance to wall too small"
 						print "Distance to object: ", ranges[temp_i]
@@ -177,6 +178,7 @@ def calculateWaypoints():
 				else:
 					i += 1
 
+			# Evaluate if at least 2 pylons and max. of defined objects are detected
 			if (nmb_detected_objects < 2) or (nmb_detected_objects > max_nmb_objects):
 				print "Error: number of objects not in the permitted range (Detected objects: ", nmb_detected_objects, ")"
 
@@ -193,6 +195,7 @@ def calculateWaypoints():
 					# Correction factor to get pylon point into center of object
 					correction_factor = (1 + radius_pylon/detected_objects_distance[i])					
 
+					# Calculate coordinates of objects in map
 					detected_objects_points.append((pose[0] + detected_objects_distance[i] * correction_factor * math.cos(alpha * math.pi / 180), pose[1] + detected_objects_distance[i] * correction_factor * math.sin(alpha * math.pi/180)))
 
 					i += 1
@@ -209,6 +212,7 @@ def calculateWaypoints():
 
 					i += 1
 		
+				# Evaluate if distance between points is in range
 				if (mean_distance < 1) or (mean_distance > 2):
 					print "Error: calculated mean_distance between objects out of range [1m, 2m]"
 		
@@ -251,12 +255,12 @@ def calculateWaypoints():
 					print "Calculated Waypoints: ", waypoints
 					print
 					
-					# For debuging reasons
+					# For debuging reasons / generate plot
 					#print "Pose: ", pose
 					#print "Ranges: ", ranges
 					#print
 
-					# Publish all waypoints
+					# Publish all waypoints as path
 					msg = Path()
 
 					for i in range(7):

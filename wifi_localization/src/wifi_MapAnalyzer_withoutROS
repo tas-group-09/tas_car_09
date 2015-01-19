@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+import pickle
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+dbLoc = "../wifiMap.pk"
+
+
+# load the database
+def make():
+    global database
+
+    try:
+		dbFile = open(dbLoc)
+		database = pickle.load(dbFile)
+		dbFile.close()
+
+    except:
+		database = {}
+
+    x_Vector = []
+    y_Vector = []
+
+    positions = database.keys()
+
+    print  '//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+    print  '/////////                                       Wifi Map Analyzer                                            /////////'
+    print  '//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+
+    for position in positions:
+
+        x_Vector.append(position[0])
+        y_Vector.append(position[1])
+
+        #print  '//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+        #print  '/////////                                            Postion                                                 ///////// '
+        #print  '//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+        #print
+        print 'Location = ', position
+        #print
+
+        MAC_Adresses = database[position].keys()
+
+        #for MAC in MAC_Adresses:
+        #       print 'MAC Adress: ',MAC,'          Signal Strength: ',database[position][MAC]
+
+        print
+        print
+        print
+
+    #plt.figure()
+    #plt.scatter(x_Vector,y_Vector)
+
+    index1 = 15
+    index2 = 9
+
+    wifiData_Position1 = database[(x_Vector[index1],y_Vector[index1])]
+    wifiData_Position2 = database[(x_Vector[index2],y_Vector[index2])]
+
+    print "@ Position [",x_Vector[index1],", ", y_Vector[index1], "]"
+    print "@ Position [",x_Vector[index2],", ", y_Vector[index2], "]"
+
+
+    p1_key = wifiData_Position1.keys()
+    p2_key = wifiData_Position2.keys()
+
+    all_keys = p1_key + p2_key
+    all_keys.sort()
+    all_keys = set(all_keys)
+
+    signalStrength1 = []
+    signalStrength2 = []
+
+    for key in all_keys:
+
+        if key in wifiData_Position1:
+            signalStrength1.append(wifiData_Position1[key])
+        else:
+            signalStrength1.append(0)
+
+        if key in wifiData_Position2:
+            signalStrength2.append(wifiData_Position2[key])
+        else:
+            signalStrength2.append(0)
+
+    plt.figure()
+
+    bar_width = 0.35
+    opacity = 0.4
+    index = np.arange(len(all_keys))
+
+    rects1 = plt.bar(index, signalStrength1, bar_width,alpha=opacity,color='b',label='Position 1')
+    index1_label = 'Position [' + str(round(x_Vector[index1],2)) + ', ' + str(round(y_Vector[index1],2)) + ']'
+
+
+    rects2 = plt.bar(index + bar_width, signalStrength2, bar_width,alpha=opacity,color='r',label='Position 2')
+    index2_label = 'Position [' + str(round(x_Vector[index2],2)) + ', ' + str(round(y_Vector[index2],2)) + ']'
+
+
+    plt.xlabel('MAC adresses')
+    plt.ylabel('Signal strength [dB]')
+    plt.title('Wifi Data Signal Strength')
+    plt.legend([rects1, rects2], [index1_label,index2_label], loc=4)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+if __name__=='__main__':
+
+		make()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

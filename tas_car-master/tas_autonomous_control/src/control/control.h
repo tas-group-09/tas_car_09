@@ -58,7 +58,7 @@ private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 
     /* control speed (ACC) if car is going straight */
-    void controlSpeed(double frontDistance, double leftDistance, double rightDistance, double minimumDistance);
+    void controlSpeed(double frontDistance);
 
 
 

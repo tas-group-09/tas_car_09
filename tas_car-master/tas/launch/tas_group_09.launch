@@ -27,13 +27,13 @@
 -->
 
 <!--navigation goals-->
-<node pkg="simple_navigation_goals" type="simple_navigation_goals_node" name="simple_navigation_goals_TAS09" respawn="false" output="screen" />
 
+<!--<node pkg="simple_navigation_goals" type="simple_navigation_goals_node" name="simple_navigation_goals_TAS09" respawn="false" output="screen" /> -->
 
 <node pkg = "wifi_localization" type = "InitialLocation.py" name = "initial_Location_TAS09" respawn = "false" output = "screen" />
 
-<!--
-<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan" name="pointcloud_to_laserscan" />
-<node pkg="laser_geometry" type="laser_geometry" name="laser_geometry_node" /> -->
+
+<!--node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan" name="pointcloud_to_laserscan" />
+<node pkg="laser_geometry" type="pointcloud_node" name="laser_geometry_node" /--> 
 
 </launch>

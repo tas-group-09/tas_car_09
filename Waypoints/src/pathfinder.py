@@ -11,16 +11,22 @@ from tf.transformations import quaternion_from_euler
 
 import pylab as pl
 import numpy as np
+import math
 
 global tolerance
 global published
 
+
+# This function asks the move base node for the path from the  startPose torwards the goalPose.
+# The distance between both poses is computed from the received path.
 def computePathLength(startPose, goalPose):
 
     global tolerance
 
+    # Tolerance of the goal pose of the path plannend by move base.
     tolerance = 0.1
 
+    # The Poses were used for Testing
     #roll = 0
     #pitch = 0
     #yaw = 1.57	
@@ -54,25 +60,27 @@ def computePathLength(startPose, goalPose):
     #print "ENDE = ",goalPose
     #print "////////////////////////////////////////////////////"
 
-    rospy.wait_for_service('move_base_node/make_plan')
+
+    # The function waits until the service becomes available.
+    rospy.wait_for_service('move_base_node/NavfnROS/make_plan')
     
-    #print "Plan available"
-
     try:
+        # Initiating the connection to the make plan service from the move base node.
         make_plan_connection = rospy.ServiceProxy('move_base_node/NavfnROS/make_plan', GetPlan)
-        #make_plan_connection = rospy.ServiceProxy('move_base_node/make_plan', GetPlan)
-	start = PoseStamped()
-	goal = PoseStamped()
 
-	start.header.stamp  = rospy.get_rostime()
-	goal.header.stamp  = rospy.get_rostime()
+        start = PoseStamped()
+        goal = PoseStamped()
+        
+        start.header.stamp  = rospy.get_rostime()
+        goal.header.stamp  = rospy.get_rostime()
+        
+        start.header.frame_id  = '/map'
+        goal.header.frame_id  = '/map'
+        
+        start.pose = startPose
+        goal.pose = goalPose
 
-	start.header.frame_id  = '/map'
-	goal.header.frame_id  = '/map'
-
-	start.pose = startPose
-	goal.pose = goalPose
-
+        # Calculation of the path by move base
         response = make_plan_connection(start,goal,tolerance)
     
     	#print
@@ -85,15 +93,16 @@ def computePathLength(startPose, goalPose):
         currentPosition = (start.pose.position.x, start.pose.position.y)
         nextPosition = (0,0)
 
-	x_vector = []
-	y_vector = []
+        x_vector = []
+        y_vector = []
     
+        # Calculation of the distance along the path.
         for pose_on_Path in response.plan.poses:
             
             nextPosition = (pose_on_Path.pose.position.x, pose_on_Path.pose.position.y)
 
-	    x_vector.append(currentPosition[0])
-	    y_vector.append(currentPosition[1])
+            x_vector.append(currentPosition[0])
+            y_vector.append(currentPosition[1])
 
             distance = distance + np.sqrt((currentPosition[0] - nextPosition[0])**2 + (currentPosition[1] - nextPosition[1])**2)
 
@@ -112,16 +121,32 @@ def computePathLength(startPose, goalPose):
 	
 
 
-
+# This function computes the orientation towards the next waypoint, to allow an clockwise and counterclockwise path around the floor.
+# ATTENTION: This function has not been validated or tested.
 def computeOrientation(start, goal):
     
     global tolerance
     
-    rospy.wait_for_service('make_plan')
+    rospy.wait_for_service('move_base_node/NavfnROS/make_plan')
     
     try:
-        make_plan_connection = rospy.ServiceProxy('make_plan', makePlan)
-        path = make_plan_connection(start,goal,tolerance)
+        # Initiating the connection to the make plan service from the move base node.
+        make_plan_connection = rospy.ServiceProxy('move_base_node/NavfnROS/make_plan', GetPlan)
+        
+        start = PoseStamped()
+        goal = PoseStamped()
+        
+        start.header.stamp  = rospy.get_rostime()
+        goal.header.stamp  = rospy.get_rostime()
+        
+        start.header.frame_id  = '/map'
+        goal.header.frame_id  = '/map'
+        
+        start.pose = startPose
+        goal.pose = goalPose
+        
+        # Calculation of the path by move base
+        response = make_plan_connection(start,goal,tolerance)
         
         deltaX = start.pose.pose.position.x - path[0].pose.pose.position.x
         deltaY = start.pose.pose.position.y - path[0].pose.pose.position.y
@@ -135,7 +160,7 @@ def computeOrientation(start, goal):
 
 
 
-    
+# This function computes the optimal path from any given location around the LSR floor. Currently only paths in the counterclockwise direction can be computed
 def computeOptimalPath(initialPose):
 
     rospy.init_node('PathPlanner', anonymous=True)    
@@ -143,7 +168,7 @@ def computeOptimalPath(initialPose):
     unorderedWaypoints = []
     orderedWaypoints = []
     
-
+    # The 8 distributed Waypoints around the lsr floor.
     
     # Corner 1/1
     waypoint1 = Pose()
@@ -185,14 +210,14 @@ def computeOptimalPath(initialPose):
     waypoint3.orientation.z = quaternion3[2]	#-0.0969236885705
     waypoint3.orientation.w = quaternion3[3]	#0.81011023189
     
-    unorderedWaypoints.append(waypoint3)
+    #unorderedWaypoints.append(waypoint3)
     
     # Corner 2/1
     waypoint4 = Pose()
     quaternion4 = quaternion_from_euler(0, 0, 0)
 
-    waypoint4.position.x = 21.4
-    waypoint4.position.y = 5.9
+    waypoint4.position.x = 23.1
+    waypoint4.position.y = 5.85
     waypoint4.position.z = 0.000
     waypoint4.orientation.x = quaternion4[0]	#0.000
     waypoint4.orientation.y = quaternion4[1]	#0.000
@@ -218,7 +243,7 @@ def computeOptimalPath(initialPose):
     quaternion6= quaternion_from_euler(0, 0, 1.57)
 
     waypoint6.position.x = 23.37
-    waypoint6.position.y = 7.55
+    waypoint6.position.y = 9.6
     waypoint6.position.z = 0.000
     waypoint6.orientation.x = quaternion6[0]	#0.000
     waypoint6.orientation.y = quaternion6[1]	#0.000
@@ -232,7 +257,7 @@ def computeOptimalPath(initialPose):
     quaternion7= quaternion_from_euler(0, 0, 1.57)
 
     waypoint7.position.x = 23.8
-    waypoint7.position.y = 18
+    waypoint7.position.y = 18.0
     waypoint7.position.z = 0.00
     waypoint7.orientation.x = quaternion7[0]	#0.000
     waypoint7.orientation.y = quaternion7[1]	#0.000
@@ -309,57 +334,68 @@ def computeOptimalPath(initialPose):
 
     currentPose = initialPose
     
-    while len(unorderedWaypoints) != 0:
-    
-	    minimalDistance     = 9999
-	    closestPose         = Pose()
-	    closestPose_Index 	= 9999
+    # Repeat this step for every waypoint in the unordered Waypoint list.
+    for waypoint_index in  range(len(unorderedWaypoints)):
+        
+        minimalDistance     = 9999
+        closestPose         = Pose()
+        closestPose_Index 	= 9999
 
 
-	    #print
-	    #print
-	    #print 'Current Pose (',currentPose.position.x,', ', currentPose.position.y, ') '
+        #print
+        #print
+        #print 'Current Pose (',currentPose.position.x,', ', currentPose.position.y, ') '
 
-	    for index in range(len(unorderedWaypoints)):
+        # Computation of the distance between the current
+        for index in range(len(unorderedWaypoints)):
 
-	    	pose = unorderedWaypoints[index]
-	    	distance = computePathLength(currentPose,pose)
+            pose = unorderedWaypoints[index]
+            distance = computePathLength(currentPose,pose)
 
-		#print 'Potential Next Pose (',pose.position.x,', ', pose.position.y, ') Distance = ', distance
+            #print 'Potential Next Pose (',pose.position.x,', ', pose.position.y, ') Distance = ', distance
 
-		Currenteuler = euler_from_quaternion((currentPose.orientation.x,currentPose.orientation.y,currentPose.orientation.z,currentPose.orientation.w ))
-		Nexteuler = euler_from_quaternion((pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w ))	
-		
-		diffAngle = abs(Currenteuler[2] - Nexteuler[2])
-		if (diffAngle > 3.14):
-			diffAngle = diffAngle - 6.28
+            Currenteuler = euler_from_quaternion((currentPose.orientation.x,currentPose.orientation.y,currentPose.orientation.z,currentPose.orientation.w ))
+            Nexteuler = euler_from_quaternion((pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w ))	
+            
+            diffAngle = abs(Currenteuler[2] - Nexteuler[2])
+            if (diffAngle > 3.14):
+                diffAngle = diffAngle - 6.28
 
-		if(distance < minimalDistance and abs(diffAngle) < 2):
-			minimalDistance = distance
-	 		closestPose = pose
-			closestPose_Index = index
+            currentPose_vector_x = np.cos(Currenteuler[2]) * 1.0
+            currentPose_vector_y = np.sin(Currenteuler[2]) * 1.0
+
+            currentPose_length = currentPose_vector_x**2 + currentPose_vector_y**2
+
+            vector_x = pose.position.x - currentPose.position.x
+            vector_y = pose.position.y - currentPose.position.y
+
+            resulting_vector_x = currentPose_vector_x + vector_x
+            resulting_vector_y = currentPose_vector_y + vector_y
+
+            resulting_vector_length = resulting_vector_x**2 + resulting_vector_y**2
+
+            # Choosing the waypoint as next waypoint which distance is smallest while having the same orientation as the starting point.
+            if(distance < minimalDistance and abs(diffAngle) < 2 and resulting_vector_length > currentPose_length):
+                minimalDistance = distance
+                closestPose = pose
+                closestPose_Index = index
 
 
-	    #print
-	    #print 'Potential Next Pose (',closestPose.position.x,', ', closestPose.position.y, ') Distance = ', distance
-	    #print 
-	    #print 
+            #print
+            #print 'Potential Next Pose (',closestPose.position.x,', ', closestPose.position.y, ') Distance = ', distance
+            #print 
+            #print 
 
-	    currentPose = closestPose
+            currentPose = closestPose
 
-	    orderedWaypoints.append(closestPose)
-	    unorderedWaypoints.pop(closestPose_Index)
+            orderedWaypoints.append(closestPose)
+            #unorderedWaypoints.pop(closestPose_Index)
 
-    #print
-    #print
-    #print
-    #print "//////////////////////////////////////////////////////"
-    #print orderedWaypoints
 
-    # Adapt the orientation of each Waypoint to the previous Waypoint
-    #for index in range(len(orderedWaypoints) - 1):
+        # Adapt the orientation of each Waypoint to the previous Waypoint -> Has not been tested.
+        #for index in range(len(orderedWaypoints) - 1):
 
-    #       ordererdWaypoints[i].pose.orientation.z = computeOrientation(orderedWaypoints[i], orderedWaypoints[i+1]):
+        #       ordererdWaypoints[i].pose.orientation.z = computeOrientation(orderedWaypoints[i], orderedWaypoints[i+1]):
 
 
     rospy.init_node('PathPlanner', anonymous=True)
@@ -372,17 +408,18 @@ def computeOptimalPath(initialPose):
 
 	    targetPath = Path()
 
-	    for temp_waypoint in orderedWaypoints:
+        # Writing the ordered Waypoints into the path array.
+	    for temp_waypoint in unorderedWaypoints:
 		tempPose = PoseStamped()
 		tempPose.header.stamp = rospy.get_rostime()
 		tempPose.pose = temp_waypoint
 		
-	    	targetPath.poses.append(tempPose)
+        	targetPath.poses.append(tempPose)
 	
 	    if(published == False):
-		print targetPath
+            	print targetPath
 	    	pub.publish(targetPath)
-		published = True
+            	published = True
 
 
 	
@@ -396,10 +433,10 @@ if __name__ == '__main__':
 	try:
     
         	initialPose = Pose()
-    		initialQuaternion = quaternion_from_euler(0, 0, 0)
+    		initialQuaternion = quaternion_from_euler(0, 0, -180 /180 * math.pi)
 
-        	initialPose.position.x = 18.7
-        	initialPose.position.y = 6.0
+        	initialPose.position.x = 18.9  #11.7
+        	initialPose.position.y = 6.11  #12.2
         	initialPose.position.z = 0.00
         	initialPose.orientation.x = initialQuaternion[0]	#0.000
         	initialPose.orientation.y = initialQuaternion[1]	#0.000

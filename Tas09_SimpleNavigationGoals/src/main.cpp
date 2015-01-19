@@ -11,8 +11,6 @@
 
 using namespace std;
 
-//ToDo: External access (e.g. Wii-Remote)
-//Switching variable for slalom true / false
 bool slalom = false;
 std::vector<geometry_msgs::Pose> waypoints; // vector of goals, with position and orientation
 
@@ -43,10 +41,12 @@ void feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr& feedback) {
 }
 
 
+// The function PathCallback is executed when a message is published to the topic "goals". The waypoints in this message are buffered.
 void PathCallback(const nav_msgs::Path& msg)
 {
     std::cout << "PATH CALLBACK HAPPENED!" << std::endl;
 
+    // Buffering of the waypoints
     for(int i = 0; i < msg.poses.size() ; i++)
     {
         waypoints.push_back(msg.poses[i].pose);
@@ -77,11 +77,12 @@ int main(int argc, char** argv){
 
     while(ros::ok())
     {
+        // If the waypoint buffer does not contain waypoints wait until waypoints arrive.
         if(waypoints.size() != 0)
         {
-            std::cout << "I am in" << std::endl;
+            
+            // Execute the buffered waypoints using the Action API provided Move Base
 
-            //std::cout << std::endl << std::endl << std::endl << "New Array" << std::endl;
 
             for(int i = 0; i < waypoints.size(); ++i)
             {
